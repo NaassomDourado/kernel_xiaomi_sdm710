@@ -1286,8 +1286,34 @@ static ssize_t gtp_fod_test_store(struct device *dev,
 	return count;
 }
 
+static ssize_t gtp_fod_status_show(struct device *dev,
+				   struct device_attribute *attr, char *buf)
+{
+	struct goodix_ts_core *core_data = dev_get_drvdata(dev);
+
+	return snprintf(buf, 10, "%d\n", core_data->fod_status);
+}
+
+static ssize_t gtp_fod_status_store(struct device *dev,
+				    struct device_attribute *attr,
+				    const char *buf, size_t count)
+{
+	struct goodix_ts_core *core_data = dev_get_drvdata(dev);
+
+	ts_info("buf:%s, count:%zu\n", buf, count);
+	sscanf(buf, "%u", &core_data->fod_status);
+
+	core_data->gesture_enabled = core_data->double_wakeup | core_data->fod_status;
+	goodix_check_gesture_stat(!!core_data->fod_status);
+
+	return count;
+}
+
 static DEVICE_ATTR(fod_test, (S_IRUGO | S_IWUSR | S_IWGRP),
 		NULL, gtp_fod_test_store);
+
+static DEVICE_ATTR(fod_status, (S_IRUGO | S_IWUSR | S_IWGRP),
+		   gtp_fod_status_show, gtp_fod_status_store);
 
 static void goodix_switch_mode_work(struct work_struct *work)
 {
@@ -2649,8 +2675,14 @@ static int goodix_ts_probe(struct platform_device *pdev)
 		goto out;
 	}
 
-	core_data->fod_status = 0;
-	wake_lock_init(&core_data->tp_wakelock, WAKE_LOCK_SUSPEND, "touch_locker");
+	if (sysfs_create_file(&core_data->gtp_touch_dev->kobj,
+			      &dev_attr_fod_status.attr)) {
+		ts_err("Failed to create fod_status sysfs group!\n");
+		goto out;
+	}
+
+	core_data->fod_status = 1;
+	wakeup_source_init(&core_data->tp_wakelock, "touch_locker");
 #ifdef CONFIG_TOUCHSCREEN_GOODIX_DEBUG_FS
 	core_data->debugfs = debugfs_create_dir("tp_debug", NULL);
 	if (core_data->debugfs) {
