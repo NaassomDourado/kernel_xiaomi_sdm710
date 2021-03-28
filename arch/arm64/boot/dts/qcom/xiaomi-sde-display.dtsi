@@ -398,4 +398,8 @@
 			qcom,default-topology-index = <0>;
 		};
 	};
+
+&mdss_dsi_phy0 {
+	qcom,panel-allow-phy-poweroff;
+	qcom,dsi-phy-regulator-min-datarate-bps = <1200000000>;
 };
