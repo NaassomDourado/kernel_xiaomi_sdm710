@@ -2874,7 +2874,6 @@ static int __init thermal_init(void)
 	result = msm_drm_register_client(&sm.thermal_notifier);
 	if (result < 0)
 		pr_warn("Thermal: register screen state callback failed\n");
-	}
 #endif
 
 	return 0;
