@@ -2521,7 +2521,7 @@ count_fail:
 }
 
 static int dsi_panel_parse_bl_dim_lut(struct dsi_panel *panel,
-                                       struct dsi_parser_utils *utils)
+                                       struct device_node *of_node)
 {
 	struct brightness_alpha_pair *lut;
 	u32 *array;
@@ -2530,7 +2530,7 @@ static int dsi_panel_parse_bl_dim_lut(struct dsi_panel *panel,
 	int rc;
 	int i;
 
-	len = utils->count_u32_elems(utils->data, "qcom,disp-bl-dim-lut");
+	len = of_property_count_u32_elems(of_node, "qcom,disp-bl-dim-lut");
 	if (len <= 0 || len % BRIGHTNESS_ALPHA_PAIR_LEN) {
 		pr_err("[%s] invalid number of elements, rc=%d\n",
 				panel->name, rc);
@@ -2546,7 +2546,7 @@ static int dsi_panel_parse_bl_dim_lut(struct dsi_panel *panel,
 		goto alloc_array_fail;
 	}
 
-	rc = utils->read_u32_array(utils->data,
+	rc = of_property_read_u32_array(of_node,
 			"qcom,disp-bl-dim-lut", array, len);
 	if (rc) {
 		pr_err("[%s] failed to allocate memory, rc=%d\n",
